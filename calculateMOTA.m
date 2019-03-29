@@ -1,15 +1,16 @@
 %% load gnd truth and results
 clc;clear all; close all;
 
-%%
+%%%%%%%%%%%%%%%%%%%%%%% MODIFY THIS BIT TO SELECT YOUR FILE FOR ANALYSIS %%%%%%%%%%%%%%%%%%%%%%%
 % stationary_1 = 1
 % walking_1 = 2
 % walking_2 = 3
-dataset_id = 1
-results_filename = "res_0319_959.csv";
-
+dataset_id = 3
+% results_filename = "res_0319_959.csv"; % ds 1
+results_filename = "res_0328_1623.csv"; % ds 1
+%%%
 loadFiles % loads results and ground truth
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Extract the useful bit of the results table
 test_table = res_table(:,{'Time','KF_X','KF_Y','Tracklet_ID'});
 test_table = sortrows(test_table,'Time');
@@ -69,7 +70,7 @@ plot3(time_array,feval(fit3x,time_array),feval(fit3y,time_array),'r','LineWidth'
 xlabel('Time (s)')
 ylabel('X distance from "odom" frame (m)')
 zlabel('Y distance from "odom" frame (m)')
-axis([min(time_array) max(time_array) 0 22 0 22])
+% axis([min(time_array) max(time_array) 0 22 0 22])
 % legend
 hold on
 
@@ -102,8 +103,9 @@ for k = 1:size(time_array,2) % loop thru timestamps in table
             % add the ID of this tracklet to the list of matched tracklets so we know that it's been detected
             matched_tracklets = [matched_tracklets, associated_tracklet_index(j)];
             
-            % get the tracklet at min distance to this test point
-            ass_tracklet = true_tracklet_cell{associated_tracklet_index(j)};
+            % get the tracklet at min distance to this test point - THIS IS
+            % A n by 3 array of time, x and y of gnd truth
+%             ass_tracklet = true_tracklet_cell{associated_tracklet_index(j)};
             
             % get the ID of the tracklet associated with this estimate
             true_id_of_this_tracklet = tracklet_temp_IDs(associated_tracklet_index(j));
@@ -130,7 +132,7 @@ for k = 1:size(time_array,2) % loop thru timestamps in table
         end
     end
     
-    for i = 1:size(true_tracklet_cell,2) % loop through thru associated tracklet indices. If there are any unmatched tracklets, increment FN
+    for i = 1:n_gnd_truth_objects % loop through thru associated tracklet indices. If there are any unmatched tracklets, increment FN
         if ~ismember(i, matched_tracklets)
             registerFN(t,i, k)
         end
@@ -139,7 +141,9 @@ for k = 1:size(time_array,2) % loop thru timestamps in table
     GT = GT + n_gnd_truth_objects; %*size(test_window,1); % increment GT by number of gnd truth objects
     
 %     MOTA(k) =  100.*(1 - (FN + FP + IDSW)/GT);
-    MOTA(k) = getMOTAtoPlot(k);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55  HARDCODED PARAM
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%HERE!!!!!!!!!!!!!!!!!!!!!!!!
+    MOTA(k) = getMOTAtoPlot(k, 10 );
     fprintf('\nGT = %d\nFN = %d\nFP = %d\nIDSW = %d\n',GT,FN,FP,IDSW)
     fprintf('\n\n**** MOTA = %.2fpc*****\n',MOTA(k))
     
@@ -150,6 +154,9 @@ for k = 1:size(time_array,2) % loop thru timestamps in table
     %         pause
     
 end
+
+% get final MOTA
+AVERAGE_MOTA_FOR_ALL_TIME = getMOTAtoPlot(size(time_array,2),size(time_array,2))
 
 
 function dist_matrix = getDistanceMatrix(test_points, gnd_truth_fits, t)
@@ -229,10 +236,9 @@ hold on
 plot3(t, test_window.KF_X(j), test_window.KF_Y(j),'m^','Markersize',20,'LineWidth',1)
 end
 
-function MOTA = getMOTAtoPlot(k)
+function MOTA = getMOTAtoPlot(k, window_length)
 
 global FP_array; global FN_array; global IDSW_array; global n_gnd_truth_objects;
-window_length = 10;
 if k <= window_length
     k
     window_length = k-1
@@ -243,6 +249,6 @@ FN = sum(FN_array(k-window_length:k))
 IDSW = sum(IDSW_array(k-window_length:k))
 GT = n_gnd_truth_objects*(window_length+1)
 
-MOTA =  100.*(1 - (FN + FP + IDSW)/GT)
+MOTA =  100.*(1 - (FN + FP + IDSW)/GT);
 
 end

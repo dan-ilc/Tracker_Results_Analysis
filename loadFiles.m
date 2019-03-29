@@ -12,12 +12,7 @@ end
 
 %% loads a bunch of stuff into work place
 load(gnd_truth_file);
-load('gnd_truth_cells_03_19_10.mat');
 gnd_truth_fits = {fit1x, fit1y, fit2x, fit2y, fit3x, fit3y}; % put stuff in a cell array
-
-%% hack: true_tracklet_array
-true_tracklet_cell = var_to_save; %better name
-clear var_to_save % delete the copy
 
 %% Results
 % add spreadsheet folder to path
