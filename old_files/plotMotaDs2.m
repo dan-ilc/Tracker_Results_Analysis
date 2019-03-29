@@ -1,6 +1,6 @@
 %% load gnd truth and results
 % clc;clear all; close all;
-loadFiles2 % loads results and ground truth
+loadFiles % loads results and ground truth
 
 %% Extract the useful bit of the results table
 test_table = res_table(:,{'Time','KF_X','KF_Y','Tracklet_ID'});
@@ -8,7 +8,7 @@ test_table = sortrows(test_table,'Time');
 test_table(1:20,:) %print the first few rows
 
 %% Set a temporary ID for each tracklet
-tracklet_temp_IDs = ones(1,size(gnd_tracklet_array,2))*-1; % set all to -1 initially
+tracklet_temp_IDs = ones(1,size(true_tracklet_cell,2))*-1; % set all to -1 initially
 
 %%
 
@@ -87,7 +87,7 @@ for k = 1:size(time_array,2) % loop thru timestamps in table
             matched_tracklets = [matched_tracklets, associated_tracklet_index(j)];
             
             % get the tracklet at min distance to this test point
-            ass_tracklet = gnd_tracklet_array{associated_tracklet_index(j)};
+            ass_tracklet = true_tracklet_cell{associated_tracklet_index(j)};
             
             % get the ID of the tracklet associated with this estimate
             true_id_of_this_tracklet = tracklet_temp_IDs(associated_tracklet_index(j));
@@ -110,11 +110,11 @@ for k = 1:size(time_array,2) % loop thru timestamps in table
                 end
             end
             % set the tracklet_id to whatever we decided
-            tracklet_temp_IDs(associated_tracklet_index(j)) = true_id_of_this_tracklet; % modify the gnd_tracklet_array
+            tracklet_temp_IDs(associated_tracklet_index(j)) = true_id_of_this_tracklet; % modify the true_tracklet_cell
         end
     end
     
-    for i = 1:size(gnd_tracklet_array,2) % loop through thru associated tracklet indices. If there are any unmatched tracklets, increment FN
+    for i = 1:size(true_tracklet_cell,2) % loop through thru associated tracklet indices. If there are any unmatched tracklets, increment FN
         if ~ismember(i, matched_tracklets)
             registerFN(t,i, k)
         end
